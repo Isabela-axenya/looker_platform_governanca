@@ -14,3 +14,6 @@ datagroup: governanca_default_datagroup {
 
 persist_with: governanca_default_datagroup
 
+explore: governanca_ultragaz {
+  label: "Governança"
+}
