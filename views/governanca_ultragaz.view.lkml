@@ -120,6 +120,23 @@ view: governanca_ultragaz {
     sql: ${TABLE}.mes_competencia ;;
   }
 
+  dimension: mes_competencia_ord_desc {
+    hidden: yes
+    type: number
+    sql: - (EXTRACT(YEAR FROM ${TABLE}.mes_competencia) * 10000
+         + EXTRACT(MONTH FROM ${TABLE}.mes_competencia) * 100
+         + EXTRACT(DAY FROM ${TABLE}.mes_competencia)) ;;
+  }
+
+  dimension: mes_competencia_mes_ano {
+    type: string
+    label: "Mês Competência"
+    sql: FORMAT_DATE('%d/%m/%Y', ${TABLE}.mes_competencia) ;;
+    order_by_field: mes_competencia_ord_desc
+  }
+
+
+
   dimension: nome {
     hidden:  yes
     type: string
@@ -270,6 +287,7 @@ view: governanca_ultragaz {
          AND ${tipo_evento} NOT LIKE '%CONSULTA%'
         THEN ${sinistro}
       END ;;
+    value_format_name: "decimal_2"
   }
 
   # Valor Telemedicina
@@ -284,6 +302,7 @@ view: governanca_ultragaz {
           '66000947','66000963','90101022'
         ) THEN ${sinistro}
       END ;;
+    value_format_name: "decimal_2"
   }
 
   # Elegíveis Ca Mama (regras)
@@ -321,7 +340,7 @@ view: governanca_ultragaz {
     sql:
       CASE
         WHEN ${elegiveis_ca_mama_regras} IS TRUE AND ${ca_mama}
-        THEN ${nome} IS TRUE
+        THEN ${nome}
       END ;;
   }
 
@@ -402,36 +421,23 @@ view: governanca_ultragaz {
       END ;;
   }
 
-  dimension: elegiveis {
-    label: "Elegiveis"
-    sql:
-    CASE WHEN ${elegivel} IS TRUE THEN ${nome} END;;
+  measure: elegiveis {
+    label: "Elegíveis"
+    sql: CASE WHEN ${elegivel} IS TRUE THEN ${nome} END ;;
   }
 
-
-  dimension: elegiveis_map {
-    label: "Elegíveis Map"
-    sql:
-      CASE
-        WHEN ${elegiveis} = 'MAPEAMENTO PORTO' THEN ${nome}
-      END ;;
-  }
-
-  dimension: mapeamento {
-    label: "Mapeamento"
-    sql:
-      CASE
-        WHEN ${elegiveis} = 'MAPEAMENTO PORTO'
-          OR ${elegiveis} = 'Outros'
-        THEN ${nome}
-      END ;;
+  measure: elegiveis_count {
+    label: "Elegível Contagem"
+    type: sum
+    sql: CASE WHEN ${elegivel} IS TRUE THEN 1 END ;;
+    value_format_name: "decimal_0"
   }
 
   dimension: participam_programas {
     label: "Participam programas"
     sql:
       CASE
-        WHEN ${participantes_programas} = 'Participantes'
+        WHEN ${participantes_programas} = 'Sim'
         THEN ${nome}
       END ;;
   }
@@ -517,8 +523,9 @@ view: governanca_ultragaz {
 
   measure: total_afastados {
     label: "Total Afastados"
-    type: count_distinct
-    sql: ${afastados} ;;
+    type: number
+    sql: COUNT(DISTINCT CASE WHEN ${afastados} = 'Sim' THEN ${nome} END) ;;
+    value_format_name: "decimal_0"
   }
 
 
@@ -530,6 +537,7 @@ view: governanca_ultragaz {
         ${sum_valor_ps} / NULLIF(${count_qtd_ps}, 0),
         0
       ) ;;
+    value_format: "\"R$\"#,##0"
   }
 
   measure: custo_medio_telemedicina {
@@ -540,6 +548,7 @@ view: governanca_ultragaz {
         ${sum_valor_telemedicina} / NULLIF(${count_telemedicina}, 0),
         0
       ) ;;
+    value_format: "\"R$\"#,##0.00"
   }
 
 
@@ -552,12 +561,14 @@ view: governanca_ultragaz {
         ${count_qtd_consulta} / NULLIF(${count_beneficiarios}, 0),
         0
       ) ;;
+    value_format_name: "decimal_1"
   }
 
   measure: uso_consulta_variacao {
     label: "Uso de consulta variação"
     type: number
     sql: ${uso_consultas_eletivas} - 0.33 ;;
+    value_format_name: "percent_2"
   }
 
   measure: uso_ps {
@@ -568,12 +579,14 @@ view: governanca_ultragaz {
         ${count_qtd_ps} / NULLIF(${count_beneficiarios}, 0),
         0
       ) ;;
+    value_format_name: "decimal_2"
   }
 
   measure: uso_ps_variacao {
     label: "Uso de PS variação"
     type: number
     sql: ${uso_ps} - 0.1075 ;;
+    value_format_name: "percent_2"
   }
 
   measure: uso_internacao {
@@ -584,13 +597,16 @@ view: governanca_ultragaz {
         ${count_qtd_internacao_distinct} / NULLIF(${count_beneficiarios}, 0),
         0
       ) ;;
+    value_format_name: "percent_2"
   }
 
   measure: uso_internacao_variacao {
     label: "Uso internação variação"
     type: number
     sql: ${uso_internacao} - 0.025 ;;
+    value_format_name: "percent_2"
   }
+
 
   measure: uso_internacao_eletiva {
     label: "Uso Internação Eletiva"
@@ -601,6 +617,7 @@ view: governanca_ultragaz {
         / NULLIF(${count_qtd_internacao_distinct}, 0),
         0
       ) ;;
+    value_format_name: "percent_2"
   }
 
   measure: uso_internacao_emergencial {
@@ -612,6 +629,7 @@ view: governanca_ultragaz {
         / NULLIF(${count_qtd_internacao_distinct}, 0),
         0
       ) ;;
+    value_format_name: "percent_2"
   }
 
   measure: uso_telemedicina {
@@ -622,6 +640,7 @@ view: governanca_ultragaz {
         ${count_telemedicina} / NULLIF(${count_qtd_consulta}, 0),
         0
       ) ;;
+    value_format_name: "percent_2"
   }
 
   measure: ans_uso_consultas_eletivas_4 {
@@ -636,6 +655,7 @@ view: governanca_ultragaz {
         / NULLIF(0.33334 * ${count_mes_competencia}, 0),
         0
       ) ;;
+    value_format_name: "percent_2"
   }
 
   measure: ans_uso_ps_1_29 {
@@ -650,6 +670,7 @@ view: governanca_ultragaz {
         / NULLIF(0.1075 * ${count_mes_competencia}, 0),
         0
       ) ;;
+    value_format_name: "percent_2"
   }
 
   measure: ans_uso_internacao_2_5 {
@@ -660,6 +681,7 @@ view: governanca_ultragaz {
         ${uso_internacao} - 0.025,
         0
       ) ;;
+    value_format_name: "percent_2"
   }
 
 
@@ -690,12 +712,14 @@ view: governanca_ultragaz {
         ${total_sinistro} / NULLIF(${total_premio}, 0),
         0
       ) ;;
+    value_format_name: "decimal_2"
   }
 
   measure: sinistralidade_variacao {
     label: "Sinistralidade variação"
     type: number
     sql: ${sinistralidade} - 0.8 ;;
+    value_format_name: "decimal_2"
   }
 
   measure: desvio_ponto_equilibrio_80 {
@@ -706,6 +730,7 @@ view: governanca_ultragaz {
         ${sinistralidade} - 0.8,
         0
       ) ;;
+    value_format_name: "decimal_2"
   }
 
   measure: gasto_ps_tele_e_ps {
@@ -718,6 +743,7 @@ view: governanca_ultragaz {
       + (
         (${count_qtd_ps} - ${count_qtd_tele_ps}) * ${custo_medio_ps}
       ) ;;
+    value_format: "\"R$\"#,##0"
   }
 
   measure: previsto_gasto_ps_tele_e_ps {
@@ -730,13 +756,42 @@ view: governanca_ultragaz {
       + (
         (${count_qtd_ps} * 0.12) * (${custo_medio_ps} + ${custo_medio_telemedicina})
       ) ;;
+    value_format: "\"R$\"#,##0"
   }
+
+  measure: gasto_ps_tele_e_ps_K {
+    label: "Gasto PS+tele e PS_K"
+    type: number
+    sql:ROUND(
+      (
+        ${count_qtd_tele_ps} * (${custo_medio_ps} + ${custo_medio_telemedicina})
+      )
+      + (
+        (${count_qtd_ps} - ${count_qtd_tele_ps}) * ${custo_medio_ps}
+      )) ;;
+    value_format: "0,\"k\""
+  }
+
+  measure: previsto_gasto_ps_tele_e_ps_K {
+    label: "Previsto - gasto PS+tele e PS_K"
+    type: number
+    sql:ROUND(
+      (
+        (${count_qtd_ps} * 0.88) * ${custo_medio_telemedicina}
+      )
+      + (
+        (${count_qtd_ps} * 0.12) * (${custo_medio_ps} + ${custo_medio_telemedicina})
+      )) ;;
+    value_format: "0,\"k\""
+  }
+
 
   measure: economia_prevista_uso_ps {
     label: "Economia prevista - Uso de PS"
     type: number
     sql:
       ${gasto_ps_tele_e_ps} - ${previsto_gasto_ps_tele_e_ps} ;;
+    value_format: "\"R$\"#,##0"
   }
 
   measure: economia_sinistro {
@@ -744,6 +799,7 @@ view: governanca_ultragaz {
     type: number
     sql:
       ${total_sinistro} - ${economia_prevista_uso_ps} ;;
+    value_format: "\"R$\"#,##0"
   }
 
   measure: economia_sinistralidade_ps {
@@ -754,6 +810,7 @@ view: governanca_ultragaz {
         ${economia_sinistro} / NULLIF(${total_premio}, 0),
         0
       ) ;;
+    value_format_name: "decimal_2"
   }
 
   measure: diferenca_ps_sem_tele {
@@ -766,6 +823,7 @@ view: governanca_ultragaz {
         ),
         0
       ) ;;
+    value_format_name: "percent_2"
   }
 
 
@@ -778,6 +836,7 @@ view: governanca_ultragaz {
         / NULLIF(COUNT(DISTINCT ${elegiveis_ca_mama}), 0),
         0
       ) ;;
+    value_format_name: "percent_2"
   }
 
   measure: exames_preventivos_ca_prostata {
@@ -789,6 +848,7 @@ view: governanca_ultragaz {
         / NULLIF(COUNT(DISTINCT ${elegiveis_ca_prostata}), 0),
         0
       ) ;;
+    value_format_name: "percent_2"
   }
 
   measure: exames_preventivos_ca_utero {
@@ -800,24 +860,21 @@ view: governanca_ultragaz {
         / NULLIF(COUNT(DISTINCT ${elegiveis_ca_utero}), 0),
         0
       ) ;;
-  }
-
-  measure: elegiveis_porto {
-    label: "Elegíveis Porto"
-    type: count_distinct
-    sql: ${mapeamento} ;;
+    value_format_name: "percent_2"
   }
 
   measure: participantes {
     label: "Participantes"
     type: number
     sql:
-      COALESCE(
-        COUNT(DISTINCT ${participam_programas})
-        / NULLIF(COUNT(DISTINCT ${elegiveis_map}), 0),
-        0
-      ) ;;
+    COALESCE(
+      COUNT(DISTINCT ${participam_programas})
+      / NULLIF(COUNT(DISTINCT ${elegiveis}), 0),
+      0
+    ) ;;
+    value_format_name: "decimal_0"
   }
+
 
   measure: participantes_2 {
     label: "Participantes 2"
@@ -827,6 +884,7 @@ view: governanca_ultragaz {
         WHEN ${participantes} <= 1 THEN ${participantes}
         ELSE 1
       END ;;
+    value_format_name: "decimal_2"
   }
 
 
@@ -842,5 +900,6 @@ view: governanca_ultragaz {
           THEN ${premio}
         END
       ) ;;
+    value_format_name: "decimal_2"
   }
 }
