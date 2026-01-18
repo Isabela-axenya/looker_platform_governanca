@@ -691,6 +691,12 @@ view: governanca_ultragaz {
     sql: 0 ;;
   }
 
+  measure: benchmark_ps {
+    label: "Benchmark Internação"
+    type: number
+    sql: 0 ;;
+  }
+
   measure: benchmark_internacao {
     label: "Benchmark Internação"
     type: number
