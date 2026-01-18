@@ -863,18 +863,25 @@ view: governanca_ultragaz {
     value_format_name: "percent_2"
   }
 
+  # measure: participantes {
+  #   label: "Participantes"
+  #   type: number
+  #   sql:
+  #   COALESCE(
+  #     COUNT(DISTINCT ${participam_programas})
+  #     / NULLIF(COUNT(DISTINCT ${elegiveis}), 0),
+  #     0
+  #   ) ;;
+  #   value_format_name: "decimal_0"
+  # }
+
   measure: participantes {
     label: "Participantes"
     type: number
     sql:
-    COALESCE(
-      COUNT(DISTINCT ${participam_programas})
-      / NULLIF(COUNT(DISTINCT ${elegiveis}), 0),
-      0
-    ) ;;
+      COUNT(DISTINCT ${participam_programas});;
     value_format_name: "decimal_0"
   }
-
 
   measure: participantes_2 {
     label: "Participantes 2"
