@@ -567,7 +567,7 @@ view: governanca_ultragaz {
   measure: uso_consulta_variacao {
     label: "Uso de consulta variação"
     type: number
-    sql: ${uso_consultas_eletivas} - 0.33 ;;
+    sql: ${uso_consultas_eletivas} - 0.31 ;;
     value_format_name: "percent_2"
   }
 
@@ -585,7 +585,7 @@ view: governanca_ultragaz {
   measure: uso_ps_variacao {
     label: "Uso de PS variação"
     type: number
-    sql: ${uso_ps} - 0.1075 ;;
+    sql: ${uso_ps} - 0.11 ;;
     value_format_name: "percent_2"
   }
 
@@ -603,7 +603,7 @@ view: governanca_ultragaz {
   measure: uso_internacao_variacao {
     label: "Uso internação variação"
     type: number
-    sql: ${uso_internacao} - 0.025 ;;
+    sql: ${uso_internacao} - 0.016 ;;
     value_format_name: "percent_2"
   }
 
@@ -643,42 +643,42 @@ view: governanca_ultragaz {
     value_format_name: "percent_2"
   }
 
-  measure: ans_uso_consultas_eletivas_4 {
-    label: "ANS - Uso de consultas eletivas (4)"
+  measure: ans_uso_consultas_eletivas_3_7 {
+    label: "ANS - Uso de consultas eletivas (3,7)"
     type: number
     sql:
       COALESCE(
         (
           ${uso_consultas_eletivas}
-          - (0.33334 * ${count_mes_competencia})
+          - (0.31 * ${count_mes_competencia})
         )
-        / NULLIF(0.33334 * ${count_mes_competencia}, 0),
+        / NULLIF(0.31 * ${count_mes_competencia}, 0),
         0
       ) ;;
     value_format_name: "percent_2"
   }
 
-  measure: ans_uso_ps_1_29 {
-    label: "ANS - Uso de PS (1,29)"
+  measure: ans_uso_ps_1_32 {
+    label: "ANS - Uso de PS (1,32)"
     type: number
     sql:
       COALESCE(
         (
           ${uso_ps}
-          - (0.1075 * ${count_mes_competencia})
+          - (0.11 * ${count_mes_competencia})
         )
-        / NULLIF(0.1075 * ${count_mes_competencia}, 0),
+        / NULLIF(0.11 * ${count_mes_competencia}, 0),
         0
       ) ;;
     value_format_name: "percent_2"
   }
 
-  measure: ans_uso_internacao_2_5 {
-    label: "ANS - Uso internação (2,5%)"
+  measure: ans_uso_internacao_1_6 {
+    label: "ANS - Uso internação (1,6%)"
     type: number
     sql:
       COALESCE(
-        ${uso_internacao} - 0.025,
+        ${uso_internacao} - 0.016,
         0
       ) ;;
     value_format_name: "percent_2"
