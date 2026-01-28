@@ -1,15 +1,6 @@
-# The name of this view in Looker is "Governanca Ultragaz"
 view: governanca_ultragaz {
-  # The sql_table_name parameter indicates the underlying database table
-  # to be used for all fields in this view.
   sql_table_name: `governanca.governanca_ultragaz` ;;
 
-  # No primary key is defined for this view. In order to join this view in an Explore,
-  # define primary_key: yes on a dimension that has no repeated values.
-
-    # Here's what a typical dimension looks like in LookML.
-    # A dimension is a groupable field that can be used to filter query results.
-    # This dimension will be called "Afastados" in Explore.
 
   dimension: afastados {
     type: string
@@ -51,8 +42,6 @@ view: governanca_ultragaz {
     type: string
     sql: ${TABLE}.cpf_beneficiario ;;
   }
-  # Dates and timestamps can be represented in Looker using a dimension group of type: time.
-  # Looker converts dates and timestamps to the specified timeframes within the dimension group.
 
   dimension_group: data_atendto {
     type: time
@@ -204,6 +193,43 @@ view: governanca_ultragaz {
   }
   measure: count {
     type: count
+  }
+
+################# PARA ANS INTERNO
+  measure: fr_consulta {
+    type: max
+    sql: CASE
+        WHEN ${tipo_evento} = 'CONSULTA' THEN ${ans_2024.fr_consulta}/12
+        ELSE NULL
+       END ;;
+    value_format_name: decimal_3
+  }
+
+  measure: fr_ps {
+    type: max
+    sql: CASE
+        WHEN ${tipo_evento} = 'PRONTO SOCORRO' THEN ${ans_2024.fr_ps}/12
+        ELSE NULL
+       END ;;
+    value_format_name: decimal_3
+  }
+
+  measure: fr_internacao {
+    type: max
+    sql: CASE
+        WHEN ${tipo_evento} = 'INTERNAÇÃO' THEN ${ans_2024.fr_internacao}/12
+        ELSE NULL
+       END ;;
+    value_format_name: decimal_3
+  }
+
+  measure: fr_internacao_total {
+    type: max
+    sql: CASE
+        WHEN ${tipo_evento} = 'INTERNAÇÃO' THEN ${ans_2024.fr_internacao}
+        ELSE NULL
+       END ;;
+    value_format_name: decimal_3
   }
 
   ## Métricas cálculadas
@@ -567,7 +593,7 @@ view: governanca_ultragaz {
   measure: uso_consulta_variacao {
     label: "Uso de consulta variação"
     type: number
-    sql: ${uso_consultas_eletivas} - 0.31 ;;
+    sql: ${uso_consultas_eletivas} - ${fr_consulta} ;;
     value_format_name: "percent_2"
   }
 
@@ -585,7 +611,7 @@ view: governanca_ultragaz {
   measure: uso_ps_variacao {
     label: "Uso de PS variação"
     type: number
-    sql: ${uso_ps} - 0.11 ;;
+    sql: ${uso_ps} - ${fr_ps} ;;
     value_format_name: "percent_2"
   }
 
@@ -603,7 +629,7 @@ view: governanca_ultragaz {
   measure: uso_internacao_variacao {
     label: "Uso internação variação"
     type: number
-    sql: ${uso_internacao} - 0.016 ;;
+    sql: ${uso_internacao} - ${fr_internacao} ;;
     value_format_name: "percent_2"
   }
 
@@ -643,42 +669,42 @@ view: governanca_ultragaz {
     value_format_name: "percent_2"
   }
 
-  measure: ans_uso_consultas_eletivas_3_7 {
-    label: "ANS - Uso de consultas eletivas (3,7)"
+  measure: ans_uso_consultas_eletivas {
+    label: "ANS - Uso de consultas eletivas"
     type: number
     sql:
-      COALESCE(
-        (
-          ${uso_consultas_eletivas}
-          - (0.31 * ${count_mes_competencia})
-        )
-        / NULLIF(0.31 * ${count_mes_competencia}, 0),
-        0
-      ) ;;
+    COALESCE(
+      (
+        ${uso_consultas_eletivas}
+        - (${fr_consulta} * ${count_mes_competencia})
+      )
+      / NULLIF(${fr_consulta} * ${count_mes_competencia}, 0),
+      0
+    ) ;;
     value_format_name: "percent_2"
   }
 
-  measure: ans_uso_ps_1_32 {
-    label: "ANS - Uso de PS (1,32)"
+  measure: ans_uso_ps {
+    label: "ANS - Uso de PS"
     type: number
     sql:
       COALESCE(
         (
           ${uso_ps}
-          - (0.11 * ${count_mes_competencia})
+          - (${fr_ps} * ${count_mes_competencia})
         )
-        / NULLIF(0.11 * ${count_mes_competencia}, 0),
+        / NULLIF(${fr_ps}* ${count_mes_competencia}, 0),
         0
       ) ;;
     value_format_name: "percent_2"
   }
 
-  measure: ans_uso_internacao_1_6 {
-    label: "ANS - Uso internação (1,6%)"
+  measure: ans_uso_internacao {
+    label: "ANS - Uso internação"
     type: number
     sql:
       COALESCE(
-        ${uso_internacao} - 0.016,
+        ${uso_internacao} - ${fr_internacao_total},
         0
       ) ;;
     value_format_name: "percent_2"

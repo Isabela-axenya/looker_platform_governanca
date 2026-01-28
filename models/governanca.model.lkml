@@ -15,5 +15,9 @@ datagroup: governanca_default_datagroup {
 persist_with: governanca_default_datagroup
 
 explore: governanca_ultragaz {
-  label: "Governança"
+  join: ans_2024 {
+    type: left_outer
+    relationship: one_to_one
+    sql_on: 1=1 ;;
+  }
 }
